@@ -96,15 +96,15 @@
     popupAnchor: [0, -38]
   });
 
-  const marker = L.marker([lat, lng], { icon: ikona }).addTo(map);
+  const marker = L.marker([lat, lng], {
+    icon: ikona
+  }).addTo(map);
 
   marker.bindPopup(
     tekst +
-    '<button class="przycisk" onclick="window.open(\'https://www.google.com/maps/dir/?api=1&destination=' +
+    '<br><button class="przycisk" onclick="window.open(\'https://www.google.com/maps/dir/?api=1&destination=' +
     lat + ',' + lng +
-    '\', \'_blank\')">' +
-    'PROWADŹ' +
-    '</button>'
+    '\', \'_blank\')">PROWADŹ</button>'
   );
 
   punkty.push({
@@ -112,7 +112,7 @@
     tekst: tekst.toLowerCase()
   });
 }
-
+</script>
   const ratusz = L.marker([52.408518, 16.934219], {
   icon: L.divIcon({
     className: '',
