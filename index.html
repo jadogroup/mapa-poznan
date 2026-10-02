@@ -24,8 +24,13 @@
     }
 
 .strona {
-  color: #fff !important;
   display: inline-block;
+  background: #4285F4;
+  color: #fff !important;
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
   margin-right: 10px;
 }
     
@@ -113,13 +118,16 @@ const punkty = [];
     icon: ikona
   }).addTo(map);
 
+    const separator = tekst.includes('class="strona"') ? '' : '<br>';
+
   marker.bindPopup(
     tekst +
-    '<br><button class="przycisk" onclick="window.open(\'https://www.google.com/maps/dir/?api=1&destination=' +
+    separator +
+    '<button class="przycisk" onclick="window.open(\'https://www.google.com/maps/dir/?api=1&destination=' +
     lat + ',' + lng +
     '\', \'_blank\')">PROWADŹ</button>'
   );
-
+    
   punkty.push({
     marker: marker,
     tekst: tekst.toLowerCase()
