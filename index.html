@@ -1686,6 +1686,8 @@ p(52.40770,16.90750,'<b>Mieszkanie-Pracownia Kazimiery Iłłakowiczówny</b><br>
 p(52.41070,16.95150,'<b>Podziemia Katedry Poznańskiej</b><br>Ekspozycja archeologiczna w podziemiach katedry na Ostrowie Tumskim. Dostępność i godziny zwiedzania mogą zależeć od sezonu.<br><a class="strona" href="https://www.katedra.archpoznan.pl/turysci-w-katedrze/" target="_blank" rel="noopener noreferrer">STRONA</a>', 'brown');
 p(52.40875,16.90584,'<b>Muzeum Historii Zoo</b><br>Wystawa o historii poznańskiego zoo, mieszcząca się w zabytkowej Lwiarni na terenie Starego Zoo przy ulicy Zwierzynieckiej 19.<br><a class="strona" href="https://zoo.poznan.pl/muzeum-historii-zoo/" target="_blank" rel="noopener noreferrer">STRONA</a>', 'brown');
 p(52.41010,16.93460,'<b>Muzeum Dawnego Poznania</b><br>Interaktywna ekspozycja o początkach Poznania i historii średniowiecznej Polski. Ulica Mokra 1A.<br><a class="strona" href="https://muzeumpoznania.pl/" target="_blank" rel="noopener noreferrer">STRONA</a>', 'brown');
+
+  document.getElementById('searchBox').addEventListener('input', function() {
   const szukane = this.value.toLowerCase().trim();
 
   punkty.forEach(function(punkt) {
