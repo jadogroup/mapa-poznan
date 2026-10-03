@@ -1973,27 +1973,7 @@ document.getElementById('zamknijFiltry').addEventListener('click', function() {
   panelFiltrow.hidden = true;
 });
 
-    if (pasuje) {
-      if (!map.hasLayer(punkt.marker)) {
-        punkt.marker.addTo(map);
-      }
-      pasujace.push(punkt.marker);
-    } else {
-      if (map.hasLayer(punkt.marker)) {
-        map.removeLayer(punkt.marker);
-      }
-    }
-  });
-
-  if (pasujace.length === 1) {
-    map.flyTo(pasujace[0].getLatLng(), 17);
-  } else if (pasujace.length > 1) {
-    const grupa = L.featureGroup(pasujace);
-    map.flyToBounds(grupa.getBounds().pad(0.2), {
-      maxZoom: 16
-    });
-  }
-});
+    
 </script>
 
 <script>
