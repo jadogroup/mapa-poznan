@@ -167,19 +167,37 @@
   grid-column: 1 / -1;
 }
 
-.przycisk-ulubione {
+.wiersz-akcji-popup {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+}
+
+.wiersz-akcji-popup .strona,
+.wiersz-akcji-popup .przycisk,
+.wiersz-akcji-popup .przycisk-ulubione {
   display: inline-block;
+  flex: 0 0 auto;
   width: auto;
-  margin: 0 8px 0 0;
-  padding: 10px 12px;
+  margin: 0;
+  padding: 8px 9px;
+  box-sizing: border-box;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.przycisk-ulubione {
   border: 1px solid #d4a900;
   border-radius: 8px;
   background: #fff8d8;
   color: #553f00;
   font-weight: bold;
-  font-size: 14px;
-  vertical-align: middle;
-  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -1995,7 +2013,9 @@ punkty.forEach(function(punkt) {
 
     function ustawTekst() {
       const zapisany = ulubioneIds.has(id);
-      przycisk.textContent = zapisany ? '★ Usuń z ulubionych' : '☆ Dodaj do ulubionych';
+      przycisk.textContent = zapisany ? '★ Zapisano' : '☆ Ulubione';
+      przycisk.title = zapisany ? 'Usuń z ulubionych' : 'Dodaj do ulubionych';
+      przycisk.setAttribute('aria-label', przycisk.title);
       przycisk.setAttribute('aria-pressed', String(zapisany));
     }
 
@@ -2013,11 +2033,13 @@ punkty.forEach(function(punkt) {
     });
 
     const przyciskProwadz = zawartosc.querySelector('.przycisk');
-    if (przyciskProwadz) {
-      zawartosc.insertBefore(przycisk, przyciskProwadz);
-    } else {
-      zawartosc.appendChild(przycisk);
-    }
+    const przyciskStrona = zawartosc.querySelector('.strona');
+    const wierszAkcji = document.createElement('div');
+    wierszAkcji.className = 'wiersz-akcji-popup';
+    if (przyciskStrona) wierszAkcji.appendChild(przyciskStrona);
+    wierszAkcji.appendChild(przycisk);
+    if (przyciskProwadz) wierszAkcji.appendChild(przyciskProwadz);
+    zawartosc.appendChild(wierszAkcji);
   });
 });
 function zastosujFiltry(przyblizMape) {
@@ -2863,4 +2885,5 @@ pokazSlowa();
 
 </body>
 </html>
+
 
