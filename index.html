@@ -66,7 +66,7 @@
   z-index: 2001;
   left: 12px;
   right: 12px;
-  bottom: 78px;
+  bottom: 126px;
   max-height: 65vh;
   display: flex;
   flex-direction: column;
@@ -151,13 +151,34 @@
 }
 
   .dolne-menu {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .dolne-menu button {
-  flex: 1;
+  min-height: 44px;
   width: auto;
+  padding: 10px 8px;
+  font-size: 14px;
+}
+
+#pokazUlubione {
+  grid-column: 1 / -1;
+}
+
+.przycisk-ulubione {
+  display: block;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  border: 1px solid #d4a900;
+  border-radius: 8px;
+  background: #fff8d8;
+  color: #553f00;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 #panelFiltrow[hidden] {
@@ -169,7 +190,7 @@
   z-index: 2001;
   left: 12px;
   right: 12px;
-  bottom: 78px;
+  bottom: 126px;
   max-height: 65vh;
   overflow-y: auto;
   padding: 16px;
@@ -221,6 +242,7 @@
 <div class="dolne-menu">
   <button id="otworzFiltry" type="button">Filtruj</button>
   <button id="otworzSlownik" type="button">Słowniczek gwary</button>
+  <button id="pokazUlubione" type="button" aria-pressed="false">☆ Pokaż ulubione</button>
 </div>
 
 <div id="panelFiltrow" hidden>
@@ -1928,6 +1950,69 @@ function kategoriaPunktu(punkt) {
   return nazwyKategorii[kolor] || 'inne';
 }
 
+const KLUCZ_ULUBIONYCH = 'gdzieWpoznaniuUlubione';
+let ulubioneIds = new Set();
+let tylkoUlubione = false;
+
+try {
+  ulubioneIds = new Set(JSON.parse(localStorage.getItem(KLUCZ_ULUBIONYCH) || '[]'));
+} catch (blad) {
+  ulubioneIds = new Set();
+}
+
+function idPunktu(punkt) {
+  const pozycja = punkt.marker.getLatLng();
+  return pozycja.lat.toFixed(6) + ',' + pozycja.lng.toFixed(6) + '|' + punkt.tekst.slice(0, 100);
+}
+
+function zapiszUlubione() {
+  try {
+    localStorage.setItem(KLUCZ_ULUBIONYCH, JSON.stringify(Array.from(ulubioneIds)));
+  } catch (blad) {
+    alert('Nie udało się zapisać ulubionych na tym urządzeniu.');
+  }
+  aktualizujPrzyciskUlubionych();
+}
+
+function aktualizujPrzyciskUlubionych() {
+  const przycisk = document.getElementById('pokazUlubione');
+  if (!przycisk) return;
+  przycisk.textContent = (tylkoUlubione ? '★ Pokaż wszystkie miejsca' : '☆ Pokaż ulubione') + ' (' + ulubioneIds.size + ')';
+  przycisk.setAttribute('aria-pressed', String(tylkoUlubione));
+}
+
+punkty.forEach(function(punkt) {
+  punkt.marker.on('popupopen', function(event) {
+    const zawartosc = event.popup.getElement().querySelector('.leaflet-popup-content');
+    if (!zawartosc || zawartosc.querySelector('.przycisk-ulubione')) return;
+
+    const przycisk = document.createElement('button');
+    const id = idPunktu(punkt);
+    przycisk.type = 'button';
+    przycisk.className = 'przycisk-ulubione';
+
+    function ustawTekst() {
+      const zapisany = ulubioneIds.has(id);
+      przycisk.textContent = zapisany ? '★ Usuń z ulubionych' : '☆ Dodaj do ulubionych';
+      przycisk.setAttribute('aria-pressed', String(zapisany));
+    }
+
+    ustawTekst();
+    przycisk.addEventListener('click', function(klik) {
+      klik.stopPropagation();
+      if (ulubioneIds.has(id)) {
+        ulubioneIds.delete(id);
+      } else {
+        ulubioneIds.add(id);
+      }
+      zapiszUlubione();
+      ustawTekst();
+      if (tylkoUlubione) zastosujFiltry(false);
+    });
+
+    zawartosc.insertBefore(przycisk, zawartosc.firstChild);
+  });
+});
 function zastosujFiltry(przyblizMape) {
   const slowa = poleWyszukiwania.value
     .toLocaleLowerCase('pl-PL')
@@ -1952,8 +2037,9 @@ function zastosujFiltry(przyblizMape) {
 
     const pasujeDoKategorii =
       zaznaczoneKategorie.has(kategoriaPunktu(punkt));
+    const pasujeDoUlubionych = !tylkoUlubione || ulubioneIds.has(idPunktu(punkt));
 
-    if (pasujeDoTekstu && pasujeDoKategorii) {
+    if (pasujeDoTekstu && pasujeDoKategorii && pasujeDoUlubionych) {
       if (!map.hasLayer(punkt.marker)) {
         punkt.marker.addTo(map);
       }
@@ -2013,6 +2099,19 @@ document.getElementById('otworzFiltry').addEventListener('click', function() {
 document.getElementById('zamknijFiltry').addEventListener('click', function() {
   panelFiltrow.hidden = true;
 });
+document.getElementById('pokazUlubione').addEventListener('click', function() {
+  if (!tylkoUlubione && ulubioneIds.size === 0) {
+    alert('Nie masz jeszcze zapisanych ulubionych miejsc. Otwórz pinezkę i wybierz „Dodaj do ulubionych”.');
+    return;
+  }
+
+  tylkoUlubione = !tylkoUlubione;
+  aktualizujPrzyciskUlubionych();
+  if (tylkoUlubione) poleWyszukiwania.value = '';
+  zastosujFiltry(true);
+});
+
+aktualizujPrzyciskUlubionych();
 
     
 </script>
