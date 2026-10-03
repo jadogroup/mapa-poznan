@@ -33,6 +33,94 @@
   font-weight: bold;
   margin-right: 10px;
 }
+
+  .dolne-menu {
+  position: fixed;
+  z-index: 2000;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dolne-menu button {
+  width: 100%;
+  padding: 13px;
+  border: 0;
+  border-radius: 10px;
+  background: #4285F4;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#panelSlownika[hidden] {
+  display: none !important;
+}
+
+#panelSlownika {
+  position: fixed;
+  z-index: 2001;
+  left: 12px;
+  right: 12px;
+  bottom: 78px;
+  max-height: 65vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.3);
+  font-family: Arial, sans-serif;
+}
+
+.slownik-naglowek {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.slownik-naglowek h2 {
+  margin: 0 0 12px;
+}
+
+#zamknijSlownik {
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+}
+
+#szukajSlowa {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+#listaSlow {
+  overflow-y: auto;
+}
+
+.haslo-slownika {
+  padding: 10px 2px;
+  border-bottom: 1px solid #ddd;
+}
+
+.haslo-slownika strong {
+  color: #2459a6;
+}
+
+.haslo-slownika p {
+  margin: 4px 0 0;
+}
     
   .przycisk {
   display: inline-block;
@@ -67,6 +155,20 @@
 
 <div id="map"></div>
   <input id="searchBox" type="text" placeholder="🔍 Szukaj miejsca...">
+
+<div class="dolne-menu">
+  <button id="otworzSlownik" type="button">Słowniczek gwary</button>
+</div>
+
+<div id="panelSlownika" hidden>
+  <div class="slownik-naglowek">
+    <h2>Poznańska gwara</h2>
+    <button id="zamknijSlownik" type="button" aria-label="Zamknij">×</button>
+  </div>
+
+  <input id="szukajSlowa" type="text" placeholder="Szukaj słowa...">
+  <div id="listaSlow"></div>
+</div>
 
 <script>
 
@@ -1720,6 +1822,65 @@ p(52.41004603339247,16.934723779126678,'<b>Muzeum Dawnego Poznania</b><br>Intera
   }
 });
 </script>
+
+<script>
+const slowaGwarowe = [
+  { slowo: "bimba", definicja: "tramwaj" },
+  { slowo: "kejter", definicja: "pies, kundel" },
+  { slowo: "pyra", definicja: "ziemniak" },
+  { slowo: "szneka z glancem", definicja: "drożdżówka polukrowana lukrem" },
+  { slowo: "tytka", definicja: "papierowa torebka" }
+];
+
+const panelSlownika = document.getElementById("panelSlownika");
+const listaSlow = document.getElementById("listaSlow");
+const szukajSlowa = document.getElementById("szukajSlowa");
+
+function pokazSlowa(fraza = "") {
+  const szukane = fraza.toLocaleLowerCase("pl-PL");
+  listaSlow.replaceChildren();
+
+  const pasujace = slowaGwarowe.filter(function(haslo) {
+    return haslo.slowo.toLocaleLowerCase("pl-PL").includes(szukane) ||
+      haslo.definicja.toLocaleLowerCase("pl-PL").includes(szukane);
+  });
+
+  if (pasujace.length === 0) {
+    listaSlow.textContent = "Nie znaleziono takiego słowa.";
+    return;
+  }
+
+  pasujace.forEach(function(haslo) {
+    const wpis = document.createElement("div");
+    wpis.className = "haslo-slownika";
+
+    const slowo = document.createElement("strong");
+    slowo.textContent = haslo.slowo;
+
+    const definicja = document.createElement("p");
+    definicja.textContent = haslo.definicja;
+
+    wpis.append(slowo, definicja);
+    listaSlow.appendChild(wpis);
+  });
+}
+
+document.getElementById("otworzSlownik").addEventListener("click", function() {
+  panelSlownika.hidden = false;
+  pokazSlowa();
+});
+
+document.getElementById("zamknijSlownik").addEventListener("click", function() {
+  panelSlownika.hidden = true;
+});
+
+szukajSlowa.addEventListener("input", function() {
+  pokazSlowa(this.value);
+});
+
+pokazSlowa();
+</script>
+  
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./service-worker.js");
