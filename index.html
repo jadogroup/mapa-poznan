@@ -191,6 +191,22 @@
   border-radius: 3px;
   flex: 0 0 16px;
 }
+
+.akcje-filtrow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.akcje-filtrow button {
+  flex: 1;
+  padding: 9px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: #4285F4;
+  color: white;
+  font-weight: bold;
+}
    
     </style>
 </head>
@@ -210,6 +226,11 @@
     <h2>Filtruj miejsca</h2>
     <button id="zamknijFiltry" type="button" aria-label="Zamknij">×</button>
   </div>
+
+  <div class="akcje-filtrow">
+  <button id="zaznaczWszystko" type="button">Zaznacz wszystko</button>
+  <button id="odznaczWszystko" type="button">Odznacz wszystko</button>
+</div>
 
   <label class="opcja-filtra">
     <input type="checkbox" value="wodne" checked>
@@ -1963,6 +1984,24 @@ panelFiltrow
       zastosujFiltry(true);
     });
   });
+
+function ustawWszystkieKategorie(zaznacz) {
+  panelFiltrow
+    .querySelectorAll('input[type="checkbox"]')
+    .forEach(function(input) {
+      input.checked = zaznacz;
+    });
+
+  zastosujFiltry(true);
+}
+
+document.getElementById('zaznaczWszystko').addEventListener('click', function() {
+  ustawWszystkieKategorie(true);
+});
+
+document.getElementById('odznaczWszystko').addEventListener('click', function() {
+  ustawWszystkieKategorie(false);
+});
 
 document.getElementById('otworzFiltry').addEventListener('click', function() {
   document.getElementById('panelSlownika').hidden = true;
