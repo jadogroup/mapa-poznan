@@ -1689,25 +1689,35 @@ p(52.41010,16.93460,'<b>Muzeum Dawnego Poznania</b><br>Interaktywna ekspozycja o
 
   document.getElementById('searchBox').addEventListener('input', function() {
   const szukane = this.value.toLowerCase().trim();
+  const slowa = szukane.split(/\s+/).filter(Boolean);
+  const pasujace = [];
 
   punkty.forEach(function(punkt) {
+    const pasuje = slowa.length === 0 ||
+      slowa.every(function(slowo) {
+        return punkt.tekst.includes(slowo);
+      });
 
-    if (szukane === '' || punkt.tekst.includes(szukane)) {
-
+    if (pasuje) {
       if (!map.hasLayer(punkt.marker)) {
         punkt.marker.addTo(map);
       }
-
+      pasujace.push(punkt.marker);
     } else {
-
       if (map.hasLayer(punkt.marker)) {
         map.removeLayer(punkt.marker);
       }
-
     }
-
   });
 
+  if (pasujace.length === 1) {
+    map.flyTo(pasujace[0].getLatLng(), 17);
+  } else if (pasujace.length > 1) {
+    const grupa = L.featureGroup(pasujace);
+    map.flyToBounds(grupa.getBounds().pad(0.2), {
+      maxZoom: 16
+    });
+  }
 });
 </script>
 <script>
