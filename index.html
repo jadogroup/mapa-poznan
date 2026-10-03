@@ -168,16 +168,18 @@
 }
 
 .przycisk-ulubione {
-  display: block;
-  width: 100%;
-  margin: 0 0 10px;
-  padding: 9px 12px;
+  display: inline-block;
+  width: auto;
+  margin: 0 8px 0 0;
+  padding: 10px 12px;
   border: 1px solid #d4a900;
   border-radius: 8px;
   background: #fff8d8;
   color: #553f00;
   font-weight: bold;
-  font-size: 15px;
+  font-size: 14px;
+  vertical-align: middle;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -2010,7 +2012,12 @@ punkty.forEach(function(punkt) {
       if (tylkoUlubione) zastosujFiltry(false);
     });
 
-    zawartosc.insertBefore(przycisk, zawartosc.firstChild);
+    const przyciskProwadz = zawartosc.querySelector('.przycisk');
+    if (przyciskProwadz) {
+      zawartosc.insertBefore(przycisk, przyciskProwadz);
+    } else {
+      zawartosc.appendChild(przycisk);
+    }
   });
 });
 function zastosujFiltry(przyblizMape) {
@@ -2856,3 +2863,4 @@ pokazSlowa();
 
 </body>
 </html>
+
