@@ -135,69 +135,20 @@
   font-weight: bold;
   cursor: pointer;
 }
-#searchPanel {
+    #searchBox {
   position: absolute;
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  width: min(440px, calc(100% - 24px));
-  font-family: Arial, sans-serif;
-}
-
-#searchControls {
-  display: flex;
-  gap: 6px;
-}
-
-#searchBox {
-  flex: 1;
-  min-width: 0;
-  box-sizing: border-box;
-  padding: 12px;
+  width: 280px;
+  padding: 12px 16px;
   border: none;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.25);
   font-size: 16px;
   outline: none;
 }
-
-#szukajUlice {
-  flex: 0 0 auto;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 10px;
-  background: #4285F4;
-  color: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-  font-size: 14px;
-  font-weight: bold;
-}
-
-#streetSearchStatus {
-  margin-top: 5px;
-  padding: 0 4px;
-  color: #333;
-  font-size: 13px;
-  text-shadow: 0 1px white;
-}
-
-#streetSearchStatus:empty {
-  display: none;
-}
-
-#geocodingAttribution {
-  margin-top: 4px;
-  text-align: right;
-  color: #555;
-  font-size: 11px;
-  text-shadow: 0 1px white;
-}
-
-#geocodingAttribution a {
-  color: #333;
-}
-
   .dolne-menu {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -247,6 +198,15 @@
   color: #553f00;
   font-weight: bold;
   cursor: pointer;
+}
+
+.zdjecie-obiektu {
+  display: block;
+  width: 100%;
+  max-height: 190px;
+  margin: 0 0 8px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 #panelFiltrow[hidden] {
@@ -305,14 +265,7 @@
 <body>
 
 <div id="map"></div>
-  <div id="searchPanel">
-    <div id="searchControls">
-      <input id="searchBox" type="search" placeholder="Szukaj miejsca lub ulicy..." aria-label="Szukaj miejsca lub ulicy">
-      <button id="szukajUlice" type="button">Pokaż ulicę</button>
-    </div>
-    <div id="streetSearchStatus" role="status" aria-live="polite"></div>
-    <div id="geocodingAttribution">Wyszukiwanie ulic: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></div>
-  </div>
+  <input id="searchBox" type="text" placeholder="🔍 Szukaj miejsca...">
 
 <div class="dolne-menu">
   <button id="otworzFiltry" type="button">Filtruj</button>
@@ -2025,6 +1978,10 @@ function kategoriaPunktu(punkt) {
   return nazwyKategorii[kolor] || 'inne';
 }
 
+const zdjeciaObiektow = {
+  // Przykład: 'Ratusz': 'zdjecia/ratusz.jpg',
+  // Nazwa po lewej musi być taka sama jak pogrubiony tytuł pinezki.
+};
 const KLUCZ_ULUBIONYCH = 'gdzieWpoznaniuUlubione';
 let ulubioneIds = new Set();
 let tylkoUlubione = false;
@@ -2059,7 +2016,24 @@ function aktualizujPrzyciskUlubionych() {
 punkty.forEach(function(punkt) {
   punkt.marker.on('popupopen', function(event) {
     const zawartosc = event.popup.getElement().querySelector('.leaflet-popup-content');
-    if (!zawartosc || zawartosc.querySelector('.przycisk-ulubione')) return;
+    if (!zawartosc) return;
+
+    const htmlPunktu = punkt.marker.getPopup().getContent();
+    const parserTytulu = document.createElement('div');
+    parserTytulu.innerHTML = typeof htmlPunktu === 'string' ? htmlPunktu : '';
+    const nazwaObiektu = parserTytulu.querySelector('b')?.textContent.trim();
+    const sciezkaZdjecia = nazwaObiektu ? zdjeciaObiektow[nazwaObiektu] : '';
+
+    if (sciezkaZdjecia && !zawartosc.querySelector('.zdjecie-obiektu')) {
+      const zdjecie = document.createElement('img');
+      zdjecie.className = 'zdjecie-obiektu';
+      zdjecie.src = sciezkaZdjecia;
+      zdjecie.alt = 'Zdjęcie obiektu: ' + nazwaObiektu;
+      zdjecie.onerror = function() { zdjecie.remove(); };
+      zawartosc.insertBefore(zdjecie, zawartosc.firstChild);
+    }
+
+    if (zawartosc.querySelector('.przycisk-ulubione')) return;
 
     const przycisk = document.createElement('button');
     const id = idPunktu(punkt);
@@ -2148,90 +2122,6 @@ function zastosujFiltry(przyblizMape) {
 poleWyszukiwania.addEventListener('input', function() {
   zastosujFiltry(true);
 });
-let znacznikUlicy = null;
-let czasOstatniegoZapytania = 0;
-
-async function znajdzUlice() {
-  const wpisanaFraza = poleWyszukiwania.value.trim();
-  const status = document.getElementById('streetSearchStatus');
-
-  if (!wpisanaFraza) {
-    status.textContent = 'Wpisz nazwę ulicy w Poznaniu.';
-    poleWyszukiwania.focus();
-    return;
-  }
-
-  const teraz = Date.now();
-  if (teraz - czasOstatniegoZapytania < 1000) {
-    status.textContent = 'Odczekaj chwilę przed kolejnym wyszukiwaniem.';
-    return;
-  }
-  czasOstatniegoZapytania = teraz;
-  status.textContent = 'Szukam ulicy w Poznaniu…';
-  document.getElementById('szukajUlice').disabled = true;
-
-  try {
-    const parametry = new URLSearchParams({
-      q: wpisanaFraza + ', Poznań, Polska',
-      format: 'jsonv2',
-      limit: '1',
-      countrycodes: 'pl',
-      viewbox: '16.7,52.5,17.2,52.3',
-      bounded: '1'
-    });
-    const odpowiedz = await fetch('https://nominatim.openstreetmap.org/search?' + parametry.toString(), {
-      headers: { 'Accept-Language': 'pl' }
-    });
-    if (!odpowiedz.ok) throw new Error('Serwis wyszukiwania chwilowo nie odpowiada.');
-
-    const wyniki = await odpowiedz.json();
-    if (!wyniki.length) {
-      status.textContent = 'Nie znalazłem tej ulicy w Poznaniu. Spróbuj wpisać pełniejszą nazwę.';
-      return;
-    }
-
-    const wynik = wyniki[0];
-    const lat = Number(wynik.lat);
-    const lng = Number(wynik.lon);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      throw new Error('Nie udało się odczytać lokalizacji.');
-    }
-
-    poleWyszukiwania.value = '';
-    zastosujFiltry(false);
-    if (znacznikUlicy) map.removeLayer(znacznikUlicy);
-    znacznikUlicy = L.circleMarker([lat, lng], {
-      radius: 9,
-      color: '#ffffff',
-      weight: 3,
-      fillColor: '#1769e0',
-      fillOpacity: 1
-    }).addTo(map);
-
-    const opis = document.createElement('div');
-    const naglowek = document.createElement('b');
-    naglowek.textContent = 'Znalezione miejsce';
-    opis.appendChild(naglowek);
-    opis.appendChild(document.createElement('br'));
-    opis.appendChild(document.createTextNode(wynik.display_name));
-    znacznikUlicy.bindPopup(opis).openPopup();
-    map.flyTo([lat, lng], 16);
-    status.textContent = 'Pokazuję przybliżone położenie: ' + wynik.display_name;
-  } catch (blad) {
-    status.textContent = blad.message || 'Nie udało się wyszukać ulicy. Sprawdź połączenie z internetem.';
-  } finally {
-    document.getElementById('szukajUlice').disabled = false;
-  }
-}
-
-document.getElementById('szukajUlice').addEventListener('click', znajdzUlice);
-poleWyszukiwania.addEventListener('keydown', function(event) {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    znajdzUlice();
-  }
-});
-
 panelFiltrow
   .querySelectorAll('input[type="checkbox"]')
   .forEach(function(input) {
@@ -3023,6 +2913,8 @@ pokazSlowa();
 
 </body>
 </html>
+
+
 
 
 
