@@ -149,6 +149,10 @@
   font-size: 16px;
   outline: none;
 }
+#map .leaflet-bottom.leaflet-right {
+  bottom: 126px;
+}
+
   .dolne-menu {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -343,7 +347,7 @@
 L.tileLayer(
   'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
-    attribution: '&copy; OpenStreetMap contributors'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
   }
 ).addTo(map);
 
@@ -2913,8 +2917,3 @@ pokazSlowa();
 
 </body>
 </html>
-
-
-
-
-
